@@ -4,5 +4,5 @@ WORKDIR /app
 ENV GOBIN=/app/bin
 COPY . .
 
-RUN go install ./...
+RUN go install . ./worker
 CMD ["/app/bin/worker" ]
