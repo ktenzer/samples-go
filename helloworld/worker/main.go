@@ -29,8 +29,8 @@ func main() {
 		}
 
 		c, err = client.Dial(client.Options{
-			HostPort:  "frontend.prod.temporal.svc.cluster.local:7233",
-			Namespace: "default",
+			HostPort:  os.Getenv("TEMPORAL_HOST_URL"),
+			Namespace: os.Getenv("TEMPORAL_NAMESPACE"),
 			ConnectionOptions: client.ConnectionOptions{
 				TLS: &tls.Config{Certificates: []tls.Certificate{cert}},
 			},
