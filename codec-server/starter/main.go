@@ -2,19 +2,46 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
+	"os"
 
-	codecserver "github.com/temporalio/samples-go/codec-server"
+	codecserver "github.com/ktenzer/samples-go/codec-server"
 	"go.temporal.io/sdk/client"
 )
 
 func main() {
 	// The client is a heavyweight object that should be created once per process.
-	c, err := client.Dial(client.Options{
-		// Set DataConverter here to ensure that workflow inputs and results are
-		// encoded as required.
-		DataConverter: codecserver.DataConverter,
-	})
+	const clientCertPath string = "/home/ktenzer/temporal/certs/ca.pem"
+	const clientKeyPath string = "/home/ktenzer/temporal/certs/ca.key"
+
+	var c client.Client
+	var err error
+	var cert tls.Certificate
+
+	if os.Getenv("MTLS") == "true" {
+
+		cert, err = tls.LoadX509KeyPair(clientCertPath, clientKeyPath)
+		if err != nil {
+			log.Fatalln("Unable to load certs", err)
+		}
+
+		c, err = client.Dial(client.Options{
+			HostPort:  os.Getenv("TEMPORAL_HOST_URL"),
+			Namespace: os.Getenv("TEMPORAL_NAMESPACE"),
+			ConnectionOptions: client.ConnectionOptions{
+				TLS: &tls.Config{Certificates: []tls.Certificate{cert}},
+			},
+			DataConverter: codecserver.DataConverter,
+		})
+	} else {
+		c, err = client.Dial(client.Options{
+			HostPort:      os.Getenv("TEMPORAL_HOST_URL"),
+			Namespace:     os.Getenv("TEMPORAL_NAMESPACE"),
+			DataConverter: codecserver.DataConverter,
+		})
+	}
+
 	if err != nil {
 		log.Fatalln("Unable to create client", err)
 	}

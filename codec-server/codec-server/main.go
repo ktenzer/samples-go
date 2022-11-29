@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"strconv"
 
-	codecserver "github.com/temporalio/samples-go/codec-server"
+	codecserver "github.com/ktenzer/samples-go/codec-server"
 
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/server/common/log"
@@ -91,7 +91,7 @@ func init() {
 	flag.IntVar(&portFlag, "port", 8081, "Port to listen on")
 	flag.StringVar(&providerFlag, "provider", "", "OIDC Provider URL. Optional: Enforces oauth authentication")
 	flag.StringVar(&audienceFlag, "audience", "", "OIDC Audience. Optional")
-	flag.StringVar(&webFlag, "web", "", "Temporal Web URL. Optional: enables CORS which is required for access from Temporal Web")
+	flag.StringVar(&webFlag, "web", os.Getenv("TEMPORAL_CODEC_SERVER_ENDPOINT"), "Temporal Web URL. Optional: enables CORS which is required for access from Temporal Web")
 }
 
 func main() {
@@ -100,7 +100,7 @@ func main() {
 	// Set codecs per namespace here.
 	// Only handle codecs for the default namespace in this example.
 	codecs := map[string][]converter.PayloadCodec{
-		"default": {codecserver.NewPayloadCodec()},
+		os.Getenv("TEMPORAL_NAMESPACE"): {codecserver.NewPayloadCodec()},
 	}
 
 	if providerFlag != "" {
